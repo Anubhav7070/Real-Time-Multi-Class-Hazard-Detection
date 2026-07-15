@@ -1,0 +1,1062 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <meta name="theme-color" content="#0a0f1a" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="description" content="Real-time Hazard threat detection alerts" />
+  <title>Hazard Alert — Live Monitor</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap"
+    rel="stylesheet" />
+
+  <style>
+    /* ── Reset & tokens ──────────────────────────────────────── */
+    *,
+    *::before,
+    *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    :root {
+      --bg: #070d1a;
+      --surface: #0d1629;
+      --surface2: #121e36;
+      --border: rgba(255, 255, 255, 0.07);
+      --text: #e8edf5;
+      --muted: #6b7a9a;
+      --accent: #3b82f6;
+      --accent-glow: rgba(59, 130, 246, 0.25);
+
+      --high: #ef4444;
+      --high-glow: rgba(239, 68, 68, 0.3);
+      --high-dim: rgba(239, 68, 68, 0.12);
+
+      --med: #f97316;
+      --med-glow: rgba(249, 115, 22, 0.3);
+      --med-dim: rgba(249, 115, 22, 0.1);
+
+      --low: #22c55e;
+      --low-glow: rgba(34, 197, 94, 0.25);
+      --low-dim: rgba(34, 197, 94, 0.08);
+
+      --font: 'Inter', system-ui, sans-serif;
+      --mono: 'JetBrains Mono', monospace;
+      --radius: 16px;
+      --radius-sm: 10px;
+      --transition: 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    html,
+    body {
+      height: 100%;
+      font-family: var(--font);
+      background: var(--bg);
+      color: var(--text);
+      overflow-x: hidden;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* ── Animated background ─────────────────────────────────── */
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background:
+        radial-gradient(ellipse 80% 60% at 10% 0%, rgba(59, 130, 246, 0.08) 0%, transparent 60%),
+        radial-gradient(ellipse 60% 50% at 90% 100%, rgba(139, 92, 246, 0.06) 0%, transparent 60%);
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    /* ── Layout ──────────────────────────────────────────────── */
+    #app {
+      position: relative;
+      z-index: 1;
+      max-width: 480px;
+      margin: 0 auto;
+      min-height: 100dvh;
+      display: flex;
+      flex-direction: column;
+      padding: 0 0 env(safe-area-inset-bottom, 16px);
+    }
+
+    /* ── Header ──────────────────────────────────────────────── */
+    header {
+      padding: 20px 20px 16px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      position: sticky;
+      top: 0;
+      z-index: 10;
+      background: linear-gradient(to bottom, var(--bg) 70%, transparent);
+      backdrop-filter: blur(12px);
+    }
+
+    .header-left {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .logo {
+      width: 40px;
+      height: 40px;
+      background: linear-gradient(135deg, #1a3a6a, #2563eb);
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 20px;
+      box-shadow: 0 0 0 1px rgba(59, 130, 246, 0.3), 0 4px 12px rgba(59, 130, 246, 0.2);
+    }
+
+    .header-title {
+      font-size: 17px;
+      font-weight: 700;
+      letter-spacing: -0.3px;
+    }
+
+    .header-sub {
+      font-size: 12px;
+      color: var(--muted);
+      margin-top: 1px;
+    }
+
+    /* ── Connection badge ────────────────────────────────────── */
+    #conn-badge {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 0.4px;
+      padding: 5px 10px;
+      border-radius: 20px;
+      transition: var(--transition);
+      text-transform: uppercase;
+    }
+
+    #conn-badge .dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      transition: var(--transition);
+    }
+
+    #conn-badge.connected {
+      color: var(--low);
+      background: var(--low-dim);
+    }
+
+    #conn-badge.connected .dot {
+      background: var(--low);
+      box-shadow: 0 0 6px var(--low);
+      animation: pulse 2s infinite;
+    }
+
+    #conn-badge.connecting {
+      color: var(--med);
+      background: var(--med-dim);
+    }
+
+    #conn-badge.connecting .dot {
+      background: var(--med);
+      animation: blink 0.8s infinite;
+    }
+
+    #conn-badge.disconnected {
+      color: var(--high);
+      background: var(--high-dim);
+    }
+
+    #conn-badge.disconnected .dot {
+      background: var(--high);
+    }
+
+    #conn-badge.reconnecting {
+      color: var(--med);
+      background: var(--med-dim);
+    }
+
+    #conn-badge.reconnecting .dot {
+      background: var(--med);
+      animation: blink 0.4s infinite;
+    }
+
+    @keyframes pulse {
+
+      0%,
+      100% {
+        opacity: 1
+      }
+
+      50% {
+        opacity: 0.5
+      }
+    }
+
+    @keyframes blink {
+
+      0%,
+      100% {
+        opacity: 1
+      }
+
+      50% {
+        opacity: 0.2
+      }
+    }
+
+    /* ── Stats row ───────────────────────────────────────────── */
+    .stats-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 10px;
+      padding: 0 20px 16px;
+    }
+
+    .stat-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      padding: 12px;
+      text-align: center;
+    }
+
+    .stat-val {
+      font-size: 22px;
+      font-weight: 800;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .stat-lbl {
+      font-size: 10px;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.6px;
+      margin-top: 3px;
+    }
+
+    /* ── Active alert pane ───────────────────────────────────── */
+    #active-pane {
+      margin: 0 20px 16px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 18px;
+      display: none;
+      position: relative;
+      overflow: hidden;
+      transition: var(--transition);
+    }
+
+    #active-pane.show {
+      display: block;
+    }
+
+    #active-pane::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      border-radius: var(--radius);
+      opacity: 0;
+      transition: opacity 0.3s;
+    }
+
+    #active-pane.risk-HIGH::before {
+      background: var(--high-dim);
+      opacity: 1;
+    }
+
+    #active-pane.risk-MEDIUM::before {
+      background: var(--med-dim);
+      opacity: 1;
+    }
+
+    #active-pane.risk-LOW::before {
+      background: var(--low-dim);
+      opacity: 1;
+    }
+
+    #active-pane.risk-HIGH {
+      border-color: var(--high);
+      box-shadow: 0 0 0 1px var(--high), 0 0 30px var(--high-glow);
+    }
+
+    #active-pane.risk-MEDIUM {
+      border-color: var(--med);
+      box-shadow: 0 0 0 1px var(--med), 0 0 20px var(--med-glow);
+    }
+
+    #active-pane.risk-LOW {
+      border-color: var(--low);
+      box-shadow: 0 0 0 1px var(--low), 0 0 16px var(--low-glow);
+    }
+
+    .active-inner {
+      position: relative;
+      z-index: 1;
+    }
+
+    .active-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 10px;
+    }
+
+    .active-badge {
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.8px;
+      text-transform: uppercase;
+      padding: 4px 10px;
+      border-radius: 6px;
+    }
+
+    .batch-HIGH {
+      color: var(--high);
+      background: var(--high-dim);
+    }
+
+    .batch-MEDIUM {
+      color: var(--med);
+      background: var(--med-dim);
+    }
+
+    .batch-LOW {
+      color: var(--low);
+      background: var(--low-dim);
+    }
+
+    .active-time {
+      font-size: 11px;
+      color: var(--muted);
+      font-family: var(--mono);
+    }
+
+    .active-title {
+      font-size: 18px;
+      font-weight: 700;
+      line-height: 1.3;
+      margin-bottom: 6px;
+    }
+
+    .active-msg {
+      font-size: 14px;
+      color: #a8b4cc;
+      line-height: 1.5;
+    }
+
+    /* ── Flash animation for HIGH ─────────────────────────────── */
+    @keyframes flash-border {
+
+      0%,
+      100% {
+        box-shadow: 0 0 0 1px var(--high), 0 0 30px var(--high-glow);
+      }
+
+      50% {
+        box-shadow: 0 0 0 2px var(--high), 0 0 60px rgba(239, 68, 68, 0.5);
+      }
+    }
+
+    #active-pane.risk-HIGH {
+      animation: flash-border 1.2s ease-in-out infinite;
+    }
+
+    /* ── Alert list ──────────────────────────────────────────── */
+    .section-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 20px 12px;
+    }
+
+    .section-title {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.7px;
+    }
+
+    #clear-btn {
+      font-size: 12px;
+      color: var(--muted);
+      background: none;
+      border: none;
+      cursor: pointer;
+      padding: 4px 8px;
+      border-radius: 6px;
+      transition: var(--transition);
+    }
+
+    #clear-btn:hover {
+      color: var(--text);
+      background: var(--surface);
+    }
+
+    #alert-list {
+      flex: 1;
+      padding: 0 20px 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      overflow-y: auto;
+    }
+
+    .empty-state {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+      color: var(--muted);
+      padding: 60px 20px;
+    }
+
+    .empty-icon {
+      font-size: 48px;
+      opacity: 0.5;
+    }
+
+    .empty-text {
+      font-size: 14px;
+      text-align: center;
+      line-height: 1.6;
+    }
+
+    /* ── Alert card ──────────────────────────────────────────── */
+    .alert-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-left-width: 3px;
+      border-radius: var(--radius-sm);
+      padding: 14px 16px;
+      animation: slide-in 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      cursor: default;
+      transition: var(--transition);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .alert-card:hover {
+      background: var(--surface2);
+      transform: translateX(2px);
+    }
+
+    .alert-card.HIGH {
+      border-left-color: var(--high);
+    }
+
+    .alert-card.MEDIUM {
+      border-left-color: var(--med);
+    }
+
+    .alert-card.LOW {
+      border-left-color: var(--low);
+    }
+
+    @keyframes slide-in {
+      from {
+        opacity: 0;
+        transform: translateY(-10px) scale(0.97);
+      }
+
+      to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+      }
+    }
+
+    .card-row1 {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 8px;
+      margin-bottom: 5px;
+    }
+
+    .card-title {
+      font-size: 14px;
+      font-weight: 600;
+      line-height: 1.3;
+      flex: 1;
+    }
+
+    .card-badge {
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 0.6px;
+      text-transform: uppercase;
+      padding: 2px 7px;
+      border-radius: 4px;
+      flex-shrink: 0;
+    }
+
+    .card-msg {
+      font-size: 13px;
+      color: #8a9ab8;
+      line-height: 1.4;
+      margin-bottom: 6px;
+    }
+
+    .card-meta {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .card-time {
+      font-size: 11px;
+      color: var(--muted);
+      font-family: var(--mono);
+    }
+
+    .card-cat {
+      font-size: 10px;
+      color: var(--muted);
+      background: rgba(255, 255, 255, 0.05);
+      padding: 2px 7px;
+      border-radius: 4px;
+      text-transform: capitalize;
+    }
+
+    /* ── Server URL bar ──────────────────────────────────────── */
+    .server-bar {
+      margin: 0 20px 16px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      padding: 12px 14px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .server-icon {
+      font-size: 16px;
+      opacity: 0.7;
+    }
+
+    .server-input-wrap {
+      flex: 1;
+    }
+
+    .server-label {
+      font-size: 10px;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-bottom: 4px;
+    }
+
+    #server-url-input {
+      width: 100%;
+      background: transparent;
+      border: none;
+      outline: none;
+      color: var(--text);
+      font-family: var(--mono);
+      font-size: 13px;
+    }
+
+    #connect-btn {
+      background: var(--accent);
+      color: #fff;
+      border: none;
+      border-radius: 8px;
+      font-size: 12px;
+      font-weight: 600;
+      padding: 7px 14px;
+      cursor: pointer;
+      transition: var(--transition);
+      white-space: nowrap;
+    }
+
+    #connect-btn:hover {
+      background: #2563eb;
+      box-shadow: 0 0 12px var(--accent-glow);
+    }
+
+    /* ── Sound toggle ────────────────────────────────────────── */
+    .toolbar {
+      display: flex;
+      gap: 8px;
+      padding: 0 20px 16px;
+    }
+
+    .tool-btn {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 8px 14px;
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--muted);
+      cursor: pointer;
+      transition: var(--transition);
+      flex: 1;
+      justify-content: center;
+    }
+
+    .tool-btn:hover {
+      border-color: var(--accent);
+      color: var(--text);
+    }
+
+    .tool-btn.active {
+      border-color: var(--accent);
+      color: var(--accent);
+      background: rgba(59, 130, 246, 0.1);
+    }
+
+    /* ── Scrollbar ───────────────────────────────────────────── */
+    ::-webkit-scrollbar {
+      width: 4px;
+    }
+
+    ::-webkit-scrollbar-track {
+      background: transparent;
+    }
+
+    ::-webkit-scrollbar-thumb {
+      background: rgba(255, 255, 255, 0.1);
+      border-radius: 2px;
+    }
+
+    /* ── Toast notification ──────────────────────────────────── */
+    #toast {
+      position: fixed;
+      bottom: 24px;
+      left: 50%;
+      transform: translateX(-50%) translateY(80px);
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 10px 18px;
+      font-size: 13px;
+      color: var(--text);
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+      transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      z-index: 100;
+      white-space: nowrap;
+    }
+
+    #toast.show {
+      transform: translateX(-50%) translateY(0);
+    }
+
+    /* ── Ripple flashes for HIGH ──────────────────────────────── */
+    .screen-flash {
+      position: fixed;
+      inset: 0;
+      background: radial-gradient(ellipse at center, rgba(239, 68, 68, 0.15) 0%, transparent 70%);
+      pointer-events: none;
+      z-index: 50;
+      animation: screen-flash-anim 0.8s ease-out forwards;
+    }
+
+    @keyframes screen-flash-anim {
+      from {
+        opacity: 1;
+      }
+
+      to {
+        opacity: 0;
+      }
+    }
+
+    @media (max-width: 380px) {
+      .stats-row {
+        grid-template-columns: 1fr 1fr;
+      }
+
+      .stat-card:last-child {
+        grid-column: span 2;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <div id="app">
+
+    <!-- ── Header ────────────────────────────────────────────────── -->
+    <header>
+      <div class="header-left">
+        <div class="logo">🦎</div>
+        <div>
+          <div class="header-title">Hazard Monitor</div>
+          <div class="header-sub">Live Detection Alerts</div>
+        </div>
+      </div>
+      <div id="conn-badge" class="disconnected">
+        <span class="dot"></span>
+        <span id="conn-label">Disconnected</span>
+      </div>
+    </header>
+
+    <!-- ── Server URL bar ──────────────────────────────────────── -->
+    <div class="server-bar">
+      <span class="server-icon">🔌</span>
+      <div class="server-input-wrap">
+        <div class="server-label">Server WebSocket URL</div>
+        <input id="server-url-input" type="text" spellcheck="false" />
+      </div>
+      <button id="connect-btn" onclick="reconnectNow()">Connect</button>
+    </div>
+
+    <!-- ── Toolbar ────────────────────────────────────────────── -->
+    <div class="toolbar">
+      <button class="tool-btn active" id="sound-btn" onclick="toggleSound()">
+        <span id="sound-icon">🔔</span> <span id="sound-label">Sound On</span>
+      </button>
+      <button class="tool-btn" id="notify-btn" onclick="requestNotifyPerm()">
+        <span>📳</span> <span>Browser Alerts</span>
+      </button>
+    </div>
+
+    <!-- ── Stats row ──────────────────────────────────────────── -->
+    <div class="stats-row">
+      <div class="stat-card">
+        <div class="stat-val" id="stat-total" style="color:var(--accent)">0</div>
+        <div class="stat-lbl">Total</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-val" id="stat-high" style="color:var(--high)">0</div>
+        <div class="stat-lbl">🔴 High</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-val" id="stat-med" style="color:var(--med)">0</div>
+        <div class="stat-lbl">🟠 Medium</div>
+      </div>
+    </div>
+
+    <!-- ── Active alert pane ─────────────────────────────────── -->
+    <div id="active-pane">
+      <div class="active-inner">
+        <div class="active-row">
+          <span class="active-badge" id="active-badge">HIGH</span>
+          <span class="active-time" id="active-time">—</span>
+        </div>
+        <div class="active-title" id="active-title">No active alert</div>
+        <div class="active-msg" id="active-msg"></div>
+      </div>
+    </div>
+
+    <!-- ── Alert feed ────────────────────────────────────────── -->
+    <div class="section-header">
+      <span class="section-title">Alert History</span>
+      <button id="clear-btn" onclick="clearAlerts()">Clear</button>
+    </div>
+
+    <div id="alert-list">
+      <div class="empty-state" id="empty-state">
+        <div class="empty-icon">📡</div>
+        <div class="empty-text">Waiting for detection alerts…<br />Make sure <code>notification_server.py</code> is
+          running.</div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Toast -->
+  <div id="toast"></div>
+
+  <script>
+    'use strict';
+
+    // ── Config ──────────────────────────────────────────────────────
+    const DEFAULT_PORT = 8765;
+    const WS_PATH = '/ws';
+
+    function defaultWsUrl() {
+      const host = window.location.hostname || 'localhost';
+      const port = window.location.port || DEFAULT_PORT;
+      return `ws://${host}:${port}${WS_PATH}`;
+    }
+
+    // ── State ───────────────────────────────────────────────────────
+    let ws = null;
+    let reconnTimer = null;
+    let soundOn = true;
+    let alerts = [];
+    let stats = { total: 0, HIGH: 0, MEDIUM: 0 };
+    let activeTimer = null;
+    const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+
+    // ── DOM refs ────────────────────────────────────────────────────
+    const badge = document.getElementById('conn-badge');
+    const connLabel = document.getElementById('conn-label');
+    const alertList = document.getElementById('alert-list');
+    const emptyState = document.getElementById('empty-state');
+    const activePane = document.getElementById('active-pane');
+    const urlInput = document.getElementById('server-url-input');
+
+    // ── Init ────────────────────────────────────────────────────────
+    urlInput.value = defaultWsUrl();
+    connect();
+
+    // ── WebSocket ───────────────────────────────────────────────────
+    function connect() {
+      const url = urlInput.value.trim() || defaultWsUrl();
+      if (ws) { ws.onclose = null; ws.close(); }
+
+      setStatus('connecting', 'Connecting…');
+
+      ws = new WebSocket(url);
+
+      ws.onopen = () => {
+        setStatus('connected', 'Live');
+        clearTimeout(reconnTimer);
+        showToast('✅ Connected to Hazard Alert Server');
+      };
+
+      ws.onmessage = (ev) => {
+        try {
+          const data = JSON.parse(ev.data);
+          if (data.type === 'connected') {
+            // Replay history
+            if (Array.isArray(data.history)) {
+              data.history.forEach(a => addAlert(a, false));
+            }
+            return;
+          }
+          if (data.type === 'alert') {
+            addAlert(data, true);
+          }
+        } catch (e) { console.warn('Parse error', e); }
+      };
+
+      ws.onerror = () => { };
+
+      ws.onclose = () => {
+        setStatus('reconnecting', 'Reconnecting…');
+        reconnTimer = setTimeout(connect, 4000);
+      };
+
+      // Keep-alive ping every 20s
+      setInterval(() => { if (ws && ws.readyState === 1) ws.send('ping'); }, 20000);
+    }
+
+    function reconnectNow() {
+      clearTimeout(reconnTimer);
+      connect();
+    }
+
+    function setStatus(cls, label) {
+      badge.className = cls;
+      connLabel.textContent = label;
+    }
+
+    // ── Alert handling ────────────────────────────────────────────
+    function addAlert(a, isNew) {
+      alerts.unshift(a);
+      if (alerts.length > 50) alerts.pop();
+
+      // Update stats
+      stats.total++;
+      if (a.risk_level === 'HIGH') stats.HIGH++;
+      if (a.risk_level === 'MEDIUM') stats.MEDIUM++;
+      renderStats();
+
+      // Show active pane
+      showActive(a);
+
+      // Sound
+      if (isNew && soundOn) playAlert(a.risk_level);
+
+      // Browser notification
+      if (isNew && Notification.permission === 'granted') {
+        new Notification(a.title, { body: a.message, icon: '🦎', tag: 'Hazard' });
+      }
+
+      // Screen flash for HIGH
+      if (isNew && a.risk_level === 'HIGH') doScreenFlash();
+
+      // Render card
+      renderCard(a, isNew);
+    }
+
+    function renderCard(a, isNew) {
+      emptyState && emptyState.remove();
+
+      const card = document.createElement('div');
+      card.className = `alert-card ${a.risk_level}`;
+      card.dataset.id = a.ts_unix;
+
+      const t = formatTime(a.timestamp);
+      const badgeColor = a.risk_level === 'HIGH' ? 'var(--high)' :
+        a.risk_level === 'MEDIUM' ? 'var(--med)' : 'var(--low)';
+      const badgeBg = a.risk_level === 'HIGH' ? 'var(--high-dim)' :
+        a.risk_level === 'MEDIUM' ? 'var(--med-dim)' : 'var(--low-dim)';
+
+      card.innerHTML = `
+    <div class="card-row1">
+      <div class="card-title">${esc(a.title)}</div>
+      <span class="card-badge" style="color:${badgeColor};background:${badgeBg}">${a.risk_level}</span>
+    </div>
+    <div class="card-msg">${esc(a.message)}</div>
+    <div class="card-meta">
+      <span class="card-time">${t}</span>
+      ${a.category ? `<span class="card-cat">${esc(a.category)}</span>` : ''}
+    </div>
+  `;
+
+      if (isNew) {
+        alertList.prepend(card);
+      } else {
+        alertList.appendChild(card);
+      }
+    }
+
+    function showActive(a) {
+      clearTimeout(activeTimer);
+      const pane = activePane;
+      pane.className = `risk-${a.risk_level} show`;
+
+      const badge = document.getElementById('active-badge');
+      badge.textContent = a.risk_level;
+      badge.className = `active-badge batch-${a.risk_level}`;
+
+      document.getElementById('active-time').textContent = formatTime(a.timestamp);
+      document.getElementById('active-title').textContent = a.title;
+      document.getElementById('active-msg').textContent = a.message;
+
+      // Auto-dismiss after 15s for LOW, 30s for MEDIUM, never for HIGH
+      const timeout = a.risk_level === 'LOW' ? 15000 : a.risk_level === 'MEDIUM' ? 30000 : 0;
+      if (timeout) {
+        activeTimer = setTimeout(() => {
+          pane.classList.remove('show');
+        }, timeout);
+      }
+    }
+
+    function renderStats() {
+      document.getElementById('stat-total').textContent = stats.total;
+      document.getElementById('stat-high').textContent = stats.HIGH;
+      document.getElementById('stat-med').textContent = stats.MEDIUM;
+    }
+
+    function clearAlerts() {
+      alerts = [];
+      stats = { total: 0, HIGH: 0, MEDIUM: 0 };
+      renderStats();
+      alertList.innerHTML = '';
+      alertList.appendChild(buildEmpty());
+      activePane.classList.remove('show');
+      showToast('🗑 History cleared');
+    }
+
+    function buildEmpty() {
+      const d = document.createElement('div');
+      d.className = 'empty-state';
+      d.id = 'empty-state';
+      d.innerHTML = `
+    <div class="empty-icon">📡</div>
+    <div class="empty-text">Waiting for detection alerts…<br/>Make sure <code>notification_server.py</code> is running.</div>
+  `;
+      return d;
+    }
+
+    // ── Sound ──────────────────────────────────────────────────────
+    function playAlert(level) {
+      const resume = audioCtx.state === 'suspended' ? audioCtx.resume() : Promise.resolve();
+      resume.then(() => {
+        if (level === 'HIGH') {
+          beep(1000, 0.25, 0.8);
+          setTimeout(() => beep(500, 0.25, 0.8), 350);
+          setTimeout(() => beep(1000, 0.25, 0.8), 700);
+        } else if (level === 'MEDIUM') {
+          beep(700, 0.3, 0.5);
+          setTimeout(() => beep(700, 0.3, 0.4), 450);
+        } else {
+          beep(500, 0.2, 0.3);
+        }
+      });
+    }
+
+    function beep(freq, dur, vol) {
+      try {
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+        osc.frequency.value = freq;
+        osc.type = 'sine';
+        gain.gain.setValueAtTime(vol, audioCtx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + dur);
+        osc.start(audioCtx.currentTime);
+        osc.stop(audioCtx.currentTime + dur);
+      } catch (e) { }
+    }
+
+    function toggleSound() {
+      soundOn = !soundOn;
+      const btn = document.getElementById('sound-btn');
+      document.getElementById('sound-icon').textContent = soundOn ? '🔔' : '🔕';
+      document.getElementById('sound-label').textContent = soundOn ? 'Sound On' : 'Sound Off';
+      btn.classList.toggle('active', soundOn);
+      showToast(soundOn ? '🔔 Sound enabled' : '🔕 Sound disabled');
+    }
+
+    // ── Browser notifications ──────────────────────────────────────
+    function requestNotifyPerm() {
+      if (!('Notification' in window)) { showToast('Notifications not supported'); return; }
+      Notification.requestPermission().then(p => {
+        showToast(p === 'granted' ? '✅ Notifications enabled!' : '❌ Permission denied');
+        document.getElementById('notify-btn').classList.toggle('active', p === 'granted');
+      });
+    }
+
+    // ── Screen flash ───────────────────────────────────────────────
+    function doScreenFlash() {
+      const el = document.createElement('div');
+      el.className = 'screen-flash';
+      document.body.appendChild(el);
+      setTimeout(() => el.remove(), 900);
+    }
+
+    // ── Helpers ────────────────────────────────────────────────────
+    function formatTime(iso) {
+      if (!iso) return '—';
+      try {
+        const d = new Date(iso);
+        return d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+      } catch (e) { return iso.slice(11, 19) || '—'; }
+    }
+
+    function esc(s) {
+      return String(s || '')
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;');
+    }
+
+    let toastTimer;
+    function showToast(msg) {
+      const t = document.getElementById('toast');
+      t.textContent = msg;
+      t.classList.add('show');
+      clearTimeout(toastTimer);
+      toastTimer = setTimeout(() => t.classList.remove('show'), 3000);
+    }
+  </script>
+</body>
+
+</html>

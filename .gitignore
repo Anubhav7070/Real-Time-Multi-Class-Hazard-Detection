@@ -1,0 +1,27 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Virtual environments
+venv/
+ENV/
+env/
+.env/
+
+# IDEs
+.vscode/
+.idea/
+
+# Local datasets and temporary download files
+downloads/
+merged_dataset/
+
+# Model run outputs / logs
+runs/
+*.log
+
+# Duplicate / large unnecessary model files
+best.pt.zip
+yolov8n.pt
+# We keep best.pt because it is the custom model configured by default
