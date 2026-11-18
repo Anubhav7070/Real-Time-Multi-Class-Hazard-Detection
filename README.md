@@ -1,8 +1,16 @@
 # 🚨 Real-Time Multi-Class Hazard Detection System
 
-\<p align="center">   \<b>AI-Powered Hazard Detection | Depth-Aware Risk Assessment | IoT-Based Alert System\</b> \</p>
+<p align="center">
+  <b>AI-Powered Hazard Detection | Depth-Aware Risk Assessment | IoT-Based Alert System</b>
+</p>
 
-\<p align="center">   \<img src="[https://img.shields.io/badge/Python-3.10+-blue?logo=python](https://img.shields.io/badge/Python-3.10+-blue?logo=python)" />   \<img src="[https://img.shields.io/badge/YOLO-Object%20Detection-green](https://img.shields.io/badge/YOLO-Object%20Detection-green)" />   \<img src="[https://img.shields.io/badge/OpenCV-Computer%20Vision-red?logo=opencv](https://img.shields.io/badge/OpenCV-Computer%20Vision-red?logo=opencv)" />   \<img src="[https://img.shields.io/badge/Streamlit-Dashboard-FF4B4B?logo=streamlit](https://img.shields.io/badge/Streamlit-Dashboard-FF4B4B?logo=streamlit)" />   \<img src="[https://img.shields.io/badge/IoT-ESP8266-orange](https://img.shields.io/badge/IoT-ESP8266-orange)" /> \</p>
+<p align="center">
+  <img src="https://img.shields.io/badge/Python-3.10+-blue?logo=python" alt="Python" />
+  <img src="https://img.shields.io/badge/YOLO-Object%20Detection-green" alt="YOLO" />
+  <img src="https://img.shields.io/badge/OpenCV-Computer%20Vision-red?logo=opencv" alt="OpenCV" />
+  <img src="https://img.shields.io/badge/Streamlit-Dashboard-FF4B4B?logo=streamlit" alt="Streamlit" />
+  <img src="https://img.shields.io/badge/IoT-ESP8266-orange" alt="ESP8266" />
+</p>
 
 ## 📌 Overview
 
@@ -30,69 +38,61 @@ It also integrates an ESP8266 NodeMCU with an LED and buzzer to provide physical
 
 ```mermaid
 flowchart TD
-    A[Camera / Video Input] --> B[OpenCV Frame Processing]
-    B --> C[YOLO Object Detection]
-    B --> D[MiDaS Depth Estimation]
-    C --> E[Detection Information]
-    D --> F[Relative Depth Information]
-    E --> G[Risk Assessment Engine]
+    A["Camera / Video Input"] --> B["OpenCV Frame Processing"]
+    B --> C["YOLO Object Detection"]
+    B --> D["MiDaS Depth Estimation"]
+    C --> E["Detection Information"]
+    D --> F["Relative Depth Information"]
+    E --> G["Risk Assessment Engine"]
     F --> G
-    G --> H[Risk Classification]
-    H --> I[Alert Manager]
-    H --> J[Streamlit Dashboard]
-    I --> K[Notification Server]
-    I --> L[ESP8266 NodeMCU]
-    L --> M[LED Indicator]
-    L --> N[Buzzer Alert]
+    G --> H["Risk Classification"]
+    H --> I["Alert Manager"]
+    H --> J["Streamlit Dashboard"]
+    I --> K["Notification Server"]
+    I --> L["ESP8266 NodeMCU"]
+    L --> M["LED Indicator"]
+    L --> N["Buzzer Alert"]
 ```
 
 ## 🧠 Technologies Used
 
-| Technology       | Purpose                                               |
-| ---------------- | ----------------------------------------------------- |
-| Python           | Core programming language                             |
-| YOLO             | Real-time object detection                            |
-| MiDaS            | Monocular depth estimation                            |
-| OpenCV           | Image and video processing                            |
-| Streamlit        | Interactive monitoring interface                      |
-| NumPy            | Numerical operations                                  |
-| ESP8266 NodeMCU  | IoT hardware communication                            |
-| LED              | Visual warning indicator                              |
-| Buzzer           | Audible warning indicator                             |
+| Technology | Purpose |
+|---|---|
+| Python | Core programming language |
+| YOLO | Real-time object detection |
+| MiDaS | Monocular depth estimation |
+| OpenCV | Image and video processing |
+| Streamlit | Interactive monitoring interface |
+| NumPy | Numerical operations |
+| ESP8266 NodeMCU | IoT hardware communication |
+| LED | Visual warning indicator |
+| Buzzer | Audible warning indicator |
 | WebSocket / HTTP | Communication and alert integration, where configured |
 
 ## 🔍 Working Methodology
 
 ### 1. Video Acquisition
-
 The system receives video input from a camera or prerecorded video source.
 
 ### 2. Object Detection
-
 YOLO processes each frame and identifies objects belonging to the trained detection classes.
 
 ### 3. Depth Estimation
-
 MiDaS estimates relative depth information for the detected objects using monocular image input.
 
 ### 4. Risk Assessment
-
 The risk engine combines object detection information and depth estimates to evaluate potential hazards.
 
 ### 5. Risk Classification
-
 The detected situations are categorized based on the implemented risk assessment logic.
 
 ### 6. Alert Generation
-
 When a risk condition satisfies the configured alert criteria, the alert manager triggers the corresponding notification mechanism.
 
 ### 7. IoT-Based Physical Alert
-
 The ESP8266 NodeMCU activates the connected LED and buzzer to provide physical warnings.
 
 ### 8. Live Visualization
-
 The Streamlit interface presents detection results and relevant risk information.
 
 ## 📂 Project Structure
@@ -121,7 +121,7 @@ Real-Time-Multi-Class-Hazard-Detection/
     └── detection results
 ```
 
-*Note: The structure above illustrates the main components. Adapt directory names to match the actual repository.*
+*Note: Update the directory structure to reflect the actual files and folders in the repository.*
 
 ## ⚙️ Installation
 
@@ -150,15 +150,13 @@ cd Real-Time-Multi-Class-Hazard-Detection
 python -m venv venv
 ```
 
-Activate it:
-
-**Windows**
+**Activate on Windows:**
 
 ```bash
 venv\Scripts\activate
 ```
 
-**Linux / macOS**
+**Activate on Linux / macOS:**
 
 ```bash
 source venv/bin/activate
@@ -178,24 +176,24 @@ Run the main application:
 python main.py
 ```
 
-Launch the Streamlit interface if the dashboard entry point is configured:
+Launch the Streamlit interface if the dashboard is configured with `main.py`:
 
 ```bash
 streamlit run main.py
 ```
 
-Use the command corresponding to the actual application entry point in your repository.
+Use the command corresponding to the actual application entry point.
 
 ## 🔌 IoT Hardware Integration
 
 The project integrates an ESP8266 NodeMCU to provide physical alerts.
 
-| Component     | NodeMCU Pin               |
-| ------------- | ------------------------- |
-| LED           | D1                        |
-| LED resistor  | 220Ω                      |
+| Component | NodeMCU Pin |
+|---|---|
+| LED | D1 |
+| LED Resistor | 220Ω |
 | Active Buzzer | Configured digital output |
-| Ground        | GND                       |
+| Ground | GND |
 
 ### Hardware Functionality
 
@@ -244,8 +242,7 @@ The primary contribution of this project is the integration of multiple technolo
 
 **Anubhav Singh**
 
-B.Tech – Information Technology
-
+B.Tech – Information Technology  
 VIT Vellore
 
 - GitHub: [@Anubhav7070](https://github.com/Anubhav7070)
@@ -253,10 +250,10 @@ VIT Vellore
 
 ## 📜 License
 
-Add the appropriate open-source license to this repository if you intend to distribute the project for reuse.
+Add an appropriate open-source license to this repository if you intend to distribute the project for reuse.
 
 ---
 
-\<p align="center">
-&#x20; \<b>Building intelligent systems for safer environments through AI, Computer Vision and IoT.\</b>
-\</p>
+<p align="center">
+  <b>Building intelligent systems for safer environments through AI, Computer Vision and IoT.</b>
+</p>
